@@ -2,6 +2,7 @@ import wavelink
 from discord.ext import commands
 import discord
 import datetime
+import math
 
 
 class MusicCommands(commands.Cog):
@@ -105,7 +106,7 @@ class MusicCommands(commands.Cog):
                         button.style = discord.ButtonStyle.blurple
                         button.emoji = "<:pausa:1200841413710065704>"
                         self.timeout = get_timeout_view()
-                        
+
                         embed.color = discord.Color.green()
                         await interaction.response.edit_message(view=self, embed=embed)
                 else:
@@ -134,6 +135,19 @@ class MusicCommands(commands.Cog):
                 await payload.player.play(await payload.player.queue.get_wait())
 
     @commands.Cog.listener()
+    async def on_wavelink_track_exception(
+        self, payload: wavelink.TrackExceptionEventPayload
+    ):
+        player = payload.player
+        if player is not None and hasattr(player, "home"):
+            await player.home.send(
+                "Hubo un error inesperado al cargar la canción: `{0}`".format(
+                    type(payload.exception).__name__
+                )
+            )
+            await player.disconnect()
+
+    @commands.Cog.listener()
     async def on_wavelink_inactive_player(self, player: wavelink.Player):
         if hasattr(player, "home"):
             await player.home.send("No hay más canciones por reproducir.")
@@ -146,7 +160,9 @@ class MusicCommands(commands.Cog):
             or query.__contains__("https://youtu.be/")
             or query.__contains__("https://music.youtube.com/watch")
         ):
-            return await ctx.reply("No puedo reproducir musica de Youtube", mention_author=False)
+            return await ctx.reply(
+                "No puedo reproducir musica de Youtube", mention_author=False
+            )
         if ctx.interaction:
             await ctx.interaction.response.defer(thinking=True)
         try:
@@ -193,8 +209,8 @@ class MusicCommands(commands.Cog):
         player: wavelink.Player = ctx.voice_client
         if player is not None:
             embed = discord.Embed(
-                title="Ahora suena",
-                description=f"[{player.current.author}]({player.current.artist.url}) -  [{player.current.title}]({player.current.uri})",
+                title="🎵 Ahora suena",
+                description=f"💿 [{player.current.author}]({player.current.artist.url}) -  [{player.current.title}]({player.current.uri})",
                 color=discord.Color.blue(),
             )
             if player.current.artwork:
@@ -205,12 +221,52 @@ class MusicCommands(commands.Cog):
                 "No hay musica sonando bro", ephemeral=True, mention_author=False
             )
 
-    @commands.hybrid_command(name="queue", aliases=['q'])
+    @commands.hybrid_command(name="queue", aliases=["q"])
     async def queue_cmd(self, ctx: commands.Context, pag: int = 1):
         player: wavelink.Player = ctx.voice_client
+        songs_per_page = 10
+        total_pages = math.ceil(len(player.queue) / songs_per_page)
+        if pag <= 0 or pag + 1 > total_pages:
+            return await ctx.reply("Ese número de página no existe.", mention_author=False,ephemeral=True)
+        def parse_track_len(ms: int) -> datetime.timedelta:
+            tiempo_total_s = datetime.timedelta(milliseconds=float(ms))
+            tiempo_total_e = datetime.timedelta(seconds=tiempo_total_s.seconds)
+            return tiempo_total_e
+
+        def getTracksEmbed():
+            start = (pag - 1) * songs_per_page
+            end = start + songs_per_page
+            embed_tracks = discord.Embed(
+                title=f"🎵 Lista de reproducción 🎵 (página {pag} de {total_pages})",
+                description=f"**💿 Ahora suena:** [{player.current.author}]({player.current.artist.url}) - [{player.current.title}]({player.current.uri})\n\n",
+                color=discord.Color.blurple(),
+            )
+
+            for i, track in enumerate(list(player.queue)[start:end], start=start):
+                embed_tracks.description += f"**{i+1}.** [{track.author}]({track.artist.url}) - [{track.title}]({track.uri}) `{parse_track_len(track.length)}` \n"
+            return embed_tracks
+
+        async def sendTracksEmbed(embed_tracks: discord.Embed):
+            embed_tracks = getTracksEmbed()
+            if len(player.queue) < 1:
+                embed_tracks.description += (
+                    "`No hay canciones en cola`\n**¡Intenta agregar una!**"
+                )
+                embed_tracks.title = "🎵 Lista de reproducción 🎵 (página 1 de 1)"
+                message = await ctx.send(embed=embed_tracks)
+            else:
+                message = await ctx.send(embed=embed_tracks)
+            return message
+
+        await sendTracksEmbed(getTracksEmbed())
         if player is not None:
-            pass
-        else: return await ctx.reply("No hay musica sonando", ephemeral=True,mention_author=False)
+            for i in enumerate(player.queue):
+                pass
+        else:
+            return await ctx.reply(
+                "No hay musica sonando", ephemeral=True, mention_author=False
+            )
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MusicCommands(bot))
