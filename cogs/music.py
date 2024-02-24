@@ -194,7 +194,7 @@ class MusicCommands(commands.Cog):
             await player.queue.put_wait(track)
             embed = discord.Embed(
                 title="Canción agregada a la cola",
-                description=f"{track.title}",
+                description=f"[{track.title}]({track.uri})",
                 color=discord.Color.blue(),
             )
             if track.artwork:
@@ -227,7 +227,10 @@ class MusicCommands(commands.Cog):
         songs_per_page = 10
         total_pages = math.ceil(len(player.queue) / songs_per_page)
         if pag <= 0 or pag + 1 > total_pages:
-            return await ctx.reply("Ese número de página no existe.", mention_author=False,ephemeral=True)
+            return await ctx.reply(
+                "Ese número de página no existe.", mention_author=False, ephemeral=True
+            )
+
         def parse_track_len(ms: int) -> datetime.timedelta:
             tiempo_total_s = datetime.timedelta(milliseconds=float(ms))
             tiempo_total_e = datetime.timedelta(seconds=tiempo_total_s.seconds)
@@ -262,6 +265,21 @@ class MusicCommands(commands.Cog):
         if player is not None:
             for i in enumerate(player.queue):
                 pass
+        else:
+            return await ctx.reply(
+                "No hay musica sonando", ephemeral=True, mention_author=False
+            )
+
+    @commands.hybrid_command(name="replay", aliases=["rp", "repeat"])
+    async def replay_cmd(self, ctx: commands.Context):
+        player: wavelink.Player = ctx.voice_client
+        if player is not None:
+            await player.play(player.current)
+            await ctx.reply(
+                "Parece que te gustó esta canción.\nVolvamos a escucharla una vez más!",
+                ephemeral=True,
+                mention_author=False,
+            )
         else:
             return await ctx.reply(
                 "No hay musica sonando", ephemeral=True, mention_author=False
