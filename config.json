@@ -1,0 +1,8 @@
+{
+    "bot_token": "MTEzNTMxMjg3ODIwODAyNDgzOA.GqKLek.NFVnk1d-JwIHD3HzT65g6ddBkDNyYdstLSqFRc",
+    
+    "node_main": {
+        "lavalink_node_uri": "http://192.99.70.135:2333",
+        "lavalink_node_pwd": "rumble"
+    }
+}
