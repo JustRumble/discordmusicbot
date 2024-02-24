@@ -205,6 +205,12 @@ class MusicCommands(commands.Cog):
                 "No hay musica sonando bro", ephemeral=True, mention_author=False
             )
 
+    @commands.hybrid_command(name="queue", aliases=['q'])
+    async def queue_cmd(self, ctx: commands.Context, pag: int = 1):
+        player: wavelink.Player = ctx.voice_client
+        if player is not None:
+            pass
+        else: return await ctx.reply("No hay musica sonando", ephemeral=True,mention_author=False)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MusicCommands(bot))
