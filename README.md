@@ -1,4 +1,4 @@
-# Discord music bot
+# Discord music bot template
 
 This is a template for any discord music bot, written in Python.
 
