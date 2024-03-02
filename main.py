@@ -15,7 +15,10 @@ async def load_cogs():
         if file.endswith(".py"):
             await bot.load_extension(f"cogs.{file[:-3]}")
 
-
+async def reload_cogs():
+    for file in os.listdir("./cogs"):
+        if file.endswith(".py"):
+            await bot.reload_extension(f"cogs.{file[:-3]}")
 @bot.event
 async def setup_hook():
     
@@ -40,6 +43,12 @@ async def sync_cmd(ctx: commands.Context):
     if await bot.is_owner(ctx.author):
         synced = await bot.tree.sync()
         await ctx.send(len(synced))
+        await ctx.message.delete()
 
+@bot.command(name="reloadcogs")
+async def reloadcogs(ctx: commands.Context):
+    if await bot.is_owner(ctx.author):
+        await reload_cogs()
+        await ctx.send("Listo")
 
 bot.run(CONFIG["bot_token"])

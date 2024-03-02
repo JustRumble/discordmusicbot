@@ -11,7 +11,7 @@ class MusicCommands(commands.Cog):
 
     @commands.Cog.listener()
     async def on_wavelink_node_ready(self, payload: wavelink.NodeReadyEventPayload):
-        print("El nodo {0} está listo!".format(payload.node.identifier))
+        print(f"El nodo {payload.node.identifier} está listo!")
 
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, payload: wavelink.TrackStartEventPayload):
@@ -141,9 +141,7 @@ class MusicCommands(commands.Cog):
         player = payload.player
         if player is not None and hasattr(player, "home"):
             await player.home.send(
-                "Hubo un error inesperado al cargar la canción: `{0}`".format(
-                    type(payload.exception).__name__
-                )
+                f"Hubo un error inesperado al cargar la canción.\nError: `{type(payload.exception).__name__}`"                
             )
             await player.disconnect()
 
