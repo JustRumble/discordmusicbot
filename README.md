@@ -1,7 +1,3 @@
-# Discord music bot
-
-This is a template for any discord music bot, written in Python.
-
 # Discord bot:
 
 - discord.py 2.3.2
