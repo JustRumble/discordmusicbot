@@ -35,20 +35,20 @@ async def setup_hook():
 
 @bot.event
 async def on_ready():
-    print("Listo")
+    print("Bot is ready")
 
 
 @bot.command(name="sync")
 async def sync_cmd(ctx: commands.Context):
     if await bot.is_owner(ctx.author):
-        synced = await bot.tree.sync()
-        await ctx.send(len(synced))
+        await bot.tree.sync()
         await ctx.message.delete()
 
 @bot.command(name="reloadcogs")
 async def reloadcogs(ctx: commands.Context):
     if await bot.is_owner(ctx.author):
         await reload_cogs()
-        await ctx.send("Listo")
+        await ctx.message.delete()
+
 
 bot.run(CONFIG["bot_token"])
