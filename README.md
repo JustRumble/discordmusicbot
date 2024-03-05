@@ -1,4 +1,4 @@
-# Discord music bot template:
+# Discord music bot template
 
 - discord.py 2.3.2
 - wavelink 3.2.0
